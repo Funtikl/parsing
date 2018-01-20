@@ -20,18 +20,28 @@ var innerLink = [];
 request(url, function (err, res, body) {
 	if(!err && res.statusCode ===200){
 		var $ = cheerio.load(body);
-		$('ul').each(function (i, elem) {
-			var container = $(this).find('a').attr('href');
-			links.push(url + container);
-			
+		$('.navbar-nav').each(function (i, elem) {
+			//var category = $(this).find('li > a').attr('href'); bele etdikde sadece 1 link gelirdi.
+			 var a = $(this).find('li > a').eq(0).attr('href');
+			 var b = $(this).find('li > a').eq(1).attr('href');
+			 var c = $(this).find('li > a').eq(2).attr('href');
+			 var d = $(this).find('li > a').eq(3).attr('href');
+			 var e = $(this).find('li > a').eq(4).attr('href');
+			links.push(url + a);
+			links.push(url + b);
+			links.push(url + c);
+			links.push(url + d);
+			links.push(url + e);
+
 		})
+		console.log(links);
 		// regular expression ilə filter
 		function regEx(val){
 			var myReg = /c/;
 			return val.match(myReg);
 		}
 		cat = links.filter(regEx);
-		// console.log(cat);
+	
 
 for (var i = 0; i < cat.length; i++) {
 	request(cat[i], function (err, res, body){
