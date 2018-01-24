@@ -1,7 +1,9 @@
-[
-    "https://www.w-t.az/c1-mobil-telefonlar",
-    "https://www.w-t.az/c4-komputerler",
-    "https://www.w-t.az/c3-nomreler",
-    "https://www.w-t.az/c2-aksesuarlar",
-    "https://www.w-t.az/c7-smart-saatlar"
-]
+{
+    "cat": [
+        "https://www.w-t.az/c1-mobil-telefonlar",
+        "https://www.w-t.az/c4-komputerler",
+        "https://www.w-t.az/c3-nomreler",
+        "https://www.w-t.az/c2-aksesuarlar",
+        "https://www.w-t.az/c7-smart-saatlar"
+    ]
+}
