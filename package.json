@@ -2,16 +2,19 @@
   "name": "leswork",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./src/data.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "nodemon --exec 'mocha -R min'"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
     "express": "^4.16.2",
+    "mocha": "^5.0.1",
     "mongoose": "^4.13.9",
+    "mysql": "^2.15.0",
+    "nodemon": "^1.15.0",
     "request": "^2.83.0"
   }
 }
