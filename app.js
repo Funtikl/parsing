@@ -106,24 +106,27 @@ request(url, function(err, res, body) {
         let $ = cheerio.load(body);
 
         // define title and price for using it in the cheerio to assing data
-        // let title;
-        let price = [];
+       
         // select and filter item class
         $(".items div").filter(function() {
           // assign to data items class and map from toArray method images, titles links
-          // let data = $(this); 
           let title = $(this).find('.item_a').attr('title');
-          if(title !== undefined)
-          {
-            // console.log(title);
-            let sql = "INSERT INTO `products` (`name`) VALUES ('"+title+"')";
+          let url =  $(this).find('.item_a').attr('href');
+          let price = $(this).find('.product_buttons').find('a').text();
+          let image = $(this).find('.item_a').attr('src');
+          // console.log(image);
+
+          // if(title !== undefined)
+          // {
+          //   // console.log(title);
+          //   let sql = "INSERT INTO `products` (`name`,`link`) VALUES ('"+title+"', '"+"https://www.w-t.az"+url+"')";
                     
-            connection.query(sql, function (err, result) {
-              if (err) throw err;
-              console.log(result);
-              console.log("Records inserted");
-            });
-          }
+          //   connection.query(sql, function (err, result) {
+          //     if (err) throw err;
+          //     console.log(result);
+          //     console.log("Records inserted");
+          //   });
+          // }
 
           
           // title = data.find("div").map(function(elem,i) {
@@ -150,117 +153,47 @@ request(url, function(err, res, body) {
     request(computers, function(err, res, body) {
       if (!err && res.statusCode === 200) {
         let $ = cheerio.load(body);
-
-        let title;
-        let json = {
-          Computers: ""
-        };
-
-        $(".items").filter(function() {
-          let data = $(this);
-          title = data.children().find("a").toArray()
-            .map(function(x) {
-              return {
-                name: data.children().find("img").attr("title"),
-                link: " www.w-t.az" + $(x).attr("href"),
-                price: ""
-              };
-            });
-
-          json.Computers = title;
-        });
-        // console.log(json);
-
-        // fs.writeFileSync("./comps.json", JSON.stringify(json, null, 4));
+           $(".items div").filter(function() {
+          let title =  $(this).find('.item_a').attr('title');
+          let url =  $(this).find('.item_a').attr('href');
+          let price =  $(this).find('.product_buttons').find('a').text();
+          // console.log(title);
+          });
       }
       request(numbers, function(err, res, body) {
         if (!err && res.statusCode === 200) {
           let $ = cheerio.load(body);
-          let title;
-          let json = {
-            numbers: ""
-          };
           $(".numbers_list").each(function() {
-            let data = $(this);
-            let title = data
-              .children()
-              .next()
-              .find("a")
-              .toArray()
-              .map(function(x) {
-                return {
-                  number: $(x).attr("title")
-                };
-              });
-            json.numbers = title;
+            let number = $(this).find('div').find('.number_price').find('strong').text();
+            let price = $(this).find('div').find('.number_price').find('span').text();
+            console.log(price + 'azn');
           });
-          // console.log(json);
-          // fs.writeFileSync("./numbers.txt", JSON.stringify(json, null, 4));
+
         }
       });
       request(accessories, function(err, res, body) {
         if (!err && res.statusCode === 200) {
           let $ = cheerio.load(body);
-          let title;
-          let json = {
-            accessories: ""
-          };
           $(".items").filter(function() {
-            let data = $(this);
-            title = data
-              .children()
-              .find("a")
-              .toArray()
-              .map(function(x) {
-                return {
-                  name: data
-                    .children()
-                    .find("img")
-                    .attr("title"),
-                  link: " www.w-t.az" + $(x).attr("href"),
-                  price: ""
-                };
-              });
-
-            json.accessories = title;
+            let title =  $(this).find('.item_a').attr('title');
+            let url =  $(this).find('.item_a').attr('href');
+            let price =  $(this).find('.product_buttons').find('a').text();
           });
-          // console.log(json);
-          // fs.writeFileSync("./accessories.json", JSON.stringify(json, null, 4));
         }
       });
       request(smartwatch , function(err,res,body){
         if(!err && res.statusCode === 200){
           let $ = cheerio.load(body);
-          let title;
-          let json = {
-            smartwatch:""
-          };
-          $(".items").filter(function() {
+          $(".items div").filter(function() {
             let data = $(this);
-            title = data
-              .children()
-              .find("a")
-              .toArray()
-              .map(function(x) {
-                return {
-                  name: data
-                    .children()
-                    .find("img")
-                    .attr("title"),
-                  link: " www.w-t.az" + $(x).attr("href"),
-                  price: ""
-                };
-              });
-
-            json.smartwatch = title;
+            let title =  $(this).find('.item_a').attr('title');
+            let url =  $(this).find('.item_a').attr('href');
+            let price =  $(this).find('.product_buttons').find('a').text();
+            // console.log(title);
           });
-          // console.log(json);
-          // fs.writeFileSync("./smart.json", JSON.stringify(json, null, 4));
         }
       })
     });
-
-    // fs.writeFileSync("./category.json", JSON.stringify({ cat }, null, 4));
   }
 });
 
