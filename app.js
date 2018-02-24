@@ -1,7 +1,42 @@
 const express = require("express");
 const request = require("request");
 const cheerio = require("cheerio");
+const async = require('async');
 const fs = require("fs");
+
+const app = express();
+
+//database
+
+
+
+
+const mysql = require("mysql");
+const phoneJson = require("./phones.json");
+const connection = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "samsung793",
+  database: "prod"
+});
+
+connection.connect(function(err) {
+  if (err) throw err;
+  console.log("Connected");
+  // var sql =
+  //   "INSERT INTO products (name , id, link) VALUES ('Iphone', '1', 'www.apple.com')";
+  // connection.query(sql, function(err, result) {
+  //   if (err) throw err;
+  //   console.log("record inserted");
+  // });
+  // console.log("connected as id " + connection.threadId);
+});
+//database end
+
+
+
+
+
 
 // url for pars
 let url = "https://www.w-t.az";
@@ -57,15 +92,12 @@ request(url, function(err, res, body) {
     cat = links.filter(regEx);
 
     //select first,second url of category(cat) and init it to vars phones'n'computers
-    let phones = cat[0];
-    let computers = cat[1];
-    let numbers = cat[2];
-    let accessories = cat[3];
-    let smartwatch = cat[4];
+   
+    let [phones, computers, numbers, accessories, smartwatch] = cat;
 
     //define Pjson object with phones name to use after
     let Pjson = {
-      Phones: ""
+      
     };
     // open cat first url
     request(phones, function(err, res, body) {
@@ -74,33 +106,44 @@ request(url, function(err, res, body) {
         let $ = cheerio.load(body);
 
         // define title and price for using it in the cheerio to assing data
-        let title, price;
-
+        // let title;
+        let price = [];
         // select and filter item class
-        $(".items").filter(function() {
+        $(".items div").filter(function() {
           // assign to data items class and map from toArray method images, titles links
-          let data = $(this);
-          title = data
-            .children()
-            .find("a")
-            .toArray()
-            .map(function(x) {
-              return {
-                name: data
-                  .children()
-                  .find("img")
-                  .attr("title"),
-                link: " www.w-t.az" + $(x).attr("href"),
-                // cannot take the price. Work on it
-                price: ""
-              };
+          // let data = $(this); 
+          let title = $(this).find('.item_a').attr('title');
+          if(title !== undefined)
+          {
+            // console.log(title);
+            let sql = "INSERT INTO `products` (`name`) VALUES ('"+title+"')";
+                    
+            connection.query(sql, function (err, result) {
+              if (err) throw err;
+              console.log(result);
+              console.log("Records inserted");
             });
-          //object Pjson's phones key's value is title now
-          Pjson.Phones = title;
+          }
+
+          
+          // title = data.find("div").map(function(elem,i) {
+          //  var x =  $(i).find(".item_a").attr("title");
+          //       // $(x)[" www.w-t.az" + $(x).attr("href")]
+          //   return x;
+          //      }).get().join(', ');
+           
+      //  let sql = 'INSERT INTO `products` (`name`) VALUES ?';
+                
+      //   connection.query(sql,[title], function (err, result) {
+      //     if (err) throw err;
+      //     console.log(result);
+      //     console.log("Records inserted");
+      //   });
         });
+  
         // console.log(Pjson);
         // use node method to take stringified Pjson and write it sync to phones.json
-        fs.writeFileSync("./phones.json", JSON.stringify(Pjson, null, 4));
+        // fs.writeFileSync("./phones.json", JSON.stringify(Pjson, null, 4));
       }
     });
     // open computers that was a cat second url
@@ -115,16 +158,10 @@ request(url, function(err, res, body) {
 
         $(".items").filter(function() {
           let data = $(this);
-          title = data
-            .children()
-            .find("a")
-            .toArray()
+          title = data.children().find("a").toArray()
             .map(function(x) {
               return {
-                name: data
-                  .children()
-                  .find("img")
-                  .attr("title"),
+                name: data.children().find("img").attr("title"),
                 link: " www.w-t.az" + $(x).attr("href"),
                 price: ""
               };
@@ -134,7 +171,7 @@ request(url, function(err, res, body) {
         });
         // console.log(json);
 
-        fs.writeFileSync("./comps.json", JSON.stringify(json, null, 4));
+        // fs.writeFileSync("./comps.json", JSON.stringify(json, null, 4));
       }
       request(numbers, function(err, res, body) {
         if (!err && res.statusCode === 200) {
@@ -158,7 +195,7 @@ request(url, function(err, res, body) {
             json.numbers = title;
           });
           // console.log(json);
-          fs.writeFileSync("./numbers.txt", JSON.stringify(json, null, 4));
+          // fs.writeFileSync("./numbers.txt", JSON.stringify(json, null, 4));
         }
       });
       request(accessories, function(err, res, body) {
@@ -188,7 +225,7 @@ request(url, function(err, res, body) {
             json.accessories = title;
           });
           // console.log(json);
-          fs.writeFileSync("./accessories.json", JSON.stringify(json, null, 4));
+          // fs.writeFileSync("./accessories.json", JSON.stringify(json, null, 4));
         }
       });
       request(smartwatch , function(err,res,body){
@@ -217,12 +254,17 @@ request(url, function(err, res, body) {
 
             json.smartwatch = title;
           });
-          console.log(json);
-          fs.writeFileSync("./smart.json", JSON.stringify(json, null, 4));
+          // console.log(json);
+          // fs.writeFileSync("./smart.json", JSON.stringify(json, null, 4));
         }
       })
     });
 
-    fs.writeFileSync("./category.json", JSON.stringify({ cat }, null, 4));
+    // fs.writeFileSync("./category.json", JSON.stringify({ cat }, null, 4));
   }
+});
+
+const port = 3000;
+app.listen(port, ()=>{
+  console.log('Server started on port' + port);
 });
