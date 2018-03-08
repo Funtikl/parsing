@@ -1,42 +1,22 @@
-const express = require("express");
+// const express = require("express");
 const request = require("request");
 const cheerio = require("cheerio");
 const async = require('async');
 const fs = require("fs");
-
-const app = express();
+// const app = express();
 
 //database
-
-
-
-
 const mysql = require("mysql");
-const phoneJson = require("./phones.json");
 const connection = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "samsung793",
-  database: "prod"
+  database: "demo"
 });
-
 connection.connect(function(err) {
   if (err) throw err;
   console.log("Connected");
-  // var sql =
-  //   "INSERT INTO products (name , id, link) VALUES ('Iphone', '1', 'www.apple.com')";
-  // connection.query(sql, function(err, result) {
-  //   if (err) throw err;
-  //   console.log("record inserted");
-  // });
-  // console.log("connected as id " + connection.threadId);
 });
-//database end
-
-
-
-
-
 
 // url for pars
 let url = "https://www.w-t.az";
@@ -87,66 +67,65 @@ request(url, function(err, res, body) {
       let myReg = /c/;
       return val.match(myReg);
     }
-
-    // assign links with regEx filter to cat
     cat = links.filter(regEx);
+//insert to database;
 
     //select first,second url of category(cat) and init it to vars phones'n'computers
-   
-    let [phones, computers, numbers, accessories, smartwatch] = cat;
 
-    //define Pjson object with phones name to use after
-    let Pjson = {
-      
-    };
-    // open cat first url
+    let [phones, computers, numbers, accessories, smartwatches] = cat;
+    let names = ["phones", "computers", "numbers", "accessories", "smartwatches"];
+
+    for (let i=0; i<names.length; i++){
+      cat[i] = cat[i].split(', ');
+      let sql = 'INSERT INTO categories (name, url) VALUES(?, ?)';
+connection.query(sql, [names[i], cat[i]], function(err,  result) {
+        if (err) throw err;
+        // console.log(result);
+        // console.log("Records inserted");
+    });
+    connection.query( "DELETE n1 FROM categories n1, categories n2 WHERE n1.id > n2.id AND n1.name = n2.name");
+    }
     request(phones, function(err, res, body) {
       // check
       if (!err && res.statusCode === 200) {
         let $ = cheerio.load(body);
-
-        // define title and price for using it in the cheerio to assing data
-       
-        // select and filter item class
-        $(".items div").filter(function() {
-          // assign to data items class and map from toArray method images, titles links
-          let title = $(this).find('.item_a').attr('title');
+               // select and filter item class
+        $(".items div").each(function() {
+          let title = $(this).find('.item_a').first().attr('title');
           let url =  $(this).find('.item_a').attr('href');
-          let price = $(this).find('.product_buttons').find('a').text();
-          let image = $(this).find('.item_a').attr('src');
-          // console.log(image);
-
-          // if(title !== undefined)
-          // {
-          //   // console.log(title);
-          //   let sql = "INSERT INTO `products` (`name`,`link`) VALUES ('"+title+"', '"+"https://www.w-t.az"+url+"')";
-                    
-          //   connection.query(sql, function (err, result) {
-          //     if (err) throw err;
-          //     console.log(result);
-          //     console.log("Records inserted");
-          //   });
-          // }
-
-          
-          // title = data.find("div").map(function(elem,i) {
-          //  var x =  $(i).find(".item_a").attr("title");
-          //       // $(x)[" www.w-t.az" + $(x).attr("href")]
-          //   return x;
-          //      }).get().join(', ');
+          let priceButton = $(this).find('.product_buttons').text();
+          // console.log(title)
+          priceButton = priceButton.split(' ');
+          // console.log(priceButton);
+          if(priceButton.length===5){
+           let price1 = 'INSERT INTO products (nisye, nagd) VALUES(?, ?)';
+           connection.query(price1, [priceButton[1],priceButton[3]],function(err,result){
+             if(err) throw err;
+            //  console.log(result);
+           });
+          }
+          else if(priceButton===3){
+            let price2 = 'INSERT INTO products (nisye, nagd) VALUES(?, ?)';
+            connection.query(price2, [priceButton[1], ''],function(err,result){
+              if(err) throw err;
+              // console.log(result);
+            }
+            )}
+          // let image = $(this).find('.item_a').attr('src');
            
-      //  let sql = 'INSERT INTO `products` (`name`) VALUES ?';
-                
-      //   connection.query(sql,[title], function (err, result) {
-      //     if (err) throw err;
-      //     console.log(result);
-      //     console.log("Records inserted");
-      //   });
-        });
-  
-        // console.log(Pjson);
-        // use node method to take stringified Pjson and write it sync to phones.json
-        // fs.writeFileSync("./phones.json", JSON.stringify(Pjson, null, 4));
+            let sql = 'INSERT INTO products (name, url) VALUES(?, ?)';
+            if(title!==undefined){  
+          connection.query(sql, [title, "www.w-t.az"+url], function(err,  result) {
+
+            if (err) throw err;
+            console.log(result);
+            console.log("Records inserted");
+
+          });}
+         
+            connection.query("delete from products where name = '';");
+            connection.query( "DELETE n1 FROM products n1, products n2 WHERE n1.id > n2.id AND n1.name = n2.name");
+      });
       }
     });
     // open computers that was a cat second url
@@ -154,50 +133,95 @@ request(url, function(err, res, body) {
       if (!err && res.statusCode === 200) {
         let $ = cheerio.load(body);
            $(".items div").filter(function() {
-          let title =  $(this).find('.item_a').attr('title');
+          let title = $(this).find('.item_a').find('h2').text();
           let url =  $(this).find('.item_a').attr('href');
-          let price =  $(this).find('.product_buttons').find('a').text();
-          // console.log(title);
-          });
-      }
-      request(numbers, function(err, res, body) {
-        if (!err && res.statusCode === 200) {
-          let $ = cheerio.load(body);
-          $(".numbers_list").each(function() {
-            let number = $(this).find('div').find('.number_price').find('strong').text();
-            let price = $(this).find('div').find('.number_price').find('span').text();
-            console.log(price + 'azn');
-          });
+          let priceButton = $(this).find('.product_buttons').text();
+          priceButton = priceButton.split(' ');
+        //  console.log(priceButton);
 
-        }
-      });
-      request(accessories, function(err, res, body) {
-        if (!err && res.statusCode === 200) {
-          let $ = cheerio.load(body);
-          $(".items").filter(function() {
-            let title =  $(this).find('.item_a').attr('title');
-            let url =  $(this).find('.item_a').attr('href');
-            let price =  $(this).find('.product_buttons').find('a').text();
+         if(priceButton.length===5){
+           let price1 = 'INSERT INTO products (nagd, nisye) VALUES(?, ?)';
+           connection.query(price1, [priceButton[1],priceButton[3]],function(err,result){
+             if(err) throw err;
+            //  console.log(result);
+           })
+          }
+        else if(priceButton===3){
+            let price2 = 'INSERT INTO products (nagd, nisye) VALUES(?, ?)';
+            connection.query(price2, [priceButton[1], ''],function(err,result){
+              if(err) throw err;
+              // console.log(result);
+            }
+            )}
+          // console.log(title);
+          let sql = 'INSERT INTO products (name, url) VALUES(?, ?)';
+          connection.query(sql, [title, "www.w-t.az"+url], function(err,  result) {
+
+            if (err) throw err;
+            // console.log(result);
+            // console.log("Records inserted");
+
           });
-        }
-      });
-      request(smartwatch , function(err,res,body){
+          });
+         }
+      connection.query("delete from products where name = '';");
+      connection.query( "DELETE n1 FROM products n1, products n2 WHERE n1.id > n2.id AND n1.name = n2.name");
+
+    request(smartwatches , function(err,res,body){
         if(!err && res.statusCode === 200){
           let $ = cheerio.load(body);
           $(".items div").filter(function() {
-            let data = $(this);
-            let title =  $(this).find('.item_a').attr('title');
+            let title = $(this).find('.item_a').find('h2').text();
             let url =  $(this).find('.item_a').attr('href');
-            let price =  $(this).find('.product_buttons').find('a').text();
+            let priceButton = $(this).find('.product_buttons').text();
+          priceButton = priceButton.split(' ');
+        //  console.log(priceButton);
+
+         if(priceButton.length===5){
+           let price1 = 'INSERT INTO products (nagd, nisye) VALUES(?, ?)';
+           connection.query(price1, [priceButton[1],priceButton[3]],function(err,result){
+             if(err) throw err;
+            //  console.log(result);
+           })
+          }
+        else if(priceButton===3){
+            let price2 = 'INSERT INTO products (nagd, nisye) VALUES(?, ?)';
+            connection.query(price2, [priceButton[1], ''],function(err,result){
+              if(err) throw err;
+              // console.log(result);
+            }
+            )}
             // console.log(title);
+            let sql = 'INSERT INTO products (name, url) VALUES(?, ?)';
+          connection.query(sql, [title, "www.w-t.az"+url], function(err,  result) {
+
+            if (err) throw err;
+            // console.log(result);
+            // console.log("Records inserted");
+
           });
+        });
+          connection.query("delete from products where name = '';");
+          connection.query( "DELETE n1 FROM products n1, products n2 WHERE n1.id > n2.id AND n1.name = n2.name");
         }
+
       })
+      // request(numbers, function(err, res, body){
+      //   if(!err && res.statusCode===200){
+      //     let $ = cheerio.load(body);
+      //     $(".container").filter(function(){
+      //       let number = $(this).find('strong').text();
+      //       setTimeout(function(){console.log(number.split([' ),']))}, 3000);
+      //     });
+      //   }
+      // })
     });
+
   }
+
 });
 
-const port = 3000;
-app.listen(port, ()=>{
-  console.log('Server started on port' + port);
-});
+// const port = 3000;
+// app.listen(port, ()=>{
+//   console.log('Server started on port' + port);
+// });
