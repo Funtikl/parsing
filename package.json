@@ -9,12 +9,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.6.0",
     "cheerio": "^1.0.0-rc.2",
     "express": "^4.16.2",
     "mocha": "^5.0.1",
     "mongoose": "^4.13.9",
     "mysql": "^2.15.0",
     "nodemon": "^1.15.0",
-    "request": "^2.83.0"
+    "request": "^2.83.0",
+    "request-promise": "^4.2.2"
   }
 }
