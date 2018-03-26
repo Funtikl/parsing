@@ -47,7 +47,7 @@ let childrens = function() {
     for (let i in row) {
       // console.log(row[i].url)
       request(row[i].url, function(err, res, body) {
-        console.log(row[i].url);
+        // console.log(row[i].url);
         if (!err && res.statusCode === 200) {
           let $ = cheerio.load(body);
           $(".items div").each(function() {
@@ -55,12 +55,63 @@ let childrens = function() {
               .find(".item_a")
               .first()
               .attr("title");
-            let url = $(this)
+            let url = "www.w-t.az"+$(this)
               .find(".item_a")
               .attr("href");
-            if (title !== undefined) {
-              console.log(url);
+              let price = $(this).find('.product_buttons').find('a').text().split(' ');
+              let reg = function(val){
+              let myreg =  /^\d+$/;
+              return val.match(myreg);
+             }
+            //  console.log(title);
+             price = price.filter(reg);
+            //  console.log(price);
+            
+            if (title !== undefined && price.length===2) {
+                let sql = "INSERT INTO products (name, url, nagd, nisye, catID) VALUES(?, ?, ?, ?, ?)";
+                connection.query(sql, [title, url, price[1],price[0], row[i].id], function(err, result) {
+                    if (err) throw err;
+                // console.log(result);
+                // console.log("Records inserted");
+                connection.query(
+                  "DELETE n1 FROM products n1, products n2 WHERE n1.id > n2.id AND n1.name = n2.name"
+                );
+              });
             }
+            else if(title!== undefined && price.length===1){
+              let sql = "INSERT INTO products (name, url, nagd, catID) VALUES(?,?,?,?)";
+                connection.query(sql, [title, url,price[0],row[i].id], function(err, result) {
+                    if (err) throw err;
+                connection.query(
+                  "DELETE n1 FROM products n1, products n2 WHERE n1.id > n2.id AND n1.name = n2.name"
+                );
+              });
+            }
+             
+
+            
+            else if(url!=="www.w-t.azundefined"){
+              // console.log(url);
+              request('https://'+url, function(err, res, body){
+                if (!err && res.statusCode === 200) {
+                  let $ = cheerio.load(body);
+
+                    let image =  $('meta[property="og:image"]').attr('content');
+                    console.log(image);
+                    let sql = "INSERT INTO products (img) VALUES(?)";
+                    connection.query(sql, image, function(err, result) {
+                      if (err) throw err;
+                  // console.log(result);
+                  // console.log("Records inserted");
+                  connection.query(
+                    "DELETE n1 FROM products n1, products n2 WHERE n1.id > n2.id AND n1.name = n2.name"
+                  );
+                });
+                    
+                  }
+                    })
+             }
+      
           });
         }
       });
@@ -68,38 +119,6 @@ let childrens = function() {
   });
 };
 childrens();
-// console.log(master);
-
-// let master1 = function(linkTo){
-//     request(linkTo, function(err, res, body){
-//       if(!err && res.statusCode ===200){
-//         let $ = cheerio.load(body);
-//       $(".navbar-nav >li").each(function(i, elem){
-//         let cat =  $(this).find("a").attr("href");
-//         // console.log(cat);
-//         let childrens = function(linkInTo){
-//           for(let i = 0; i<linkInTo.length;i++){
-//             request(linkInTo[i],function(err, res, body){
-//               if(!err && res.statusCode === 200){
-//                 $(".items div").each(function(){
-//                   let title = $(this).find('.item_a').first().attr('title');
-//                   let innerUrl =  $(this).find('.item_a').attr('href');
-//                   let price = $(this).find('.product_buttons').find('a').text();
-//                   let image = $(this).find('.item_a').attr('src');
-//                   console.log(title);
-//                 })
-//               }
-//              })
-//           }
-
-//           }
-//         console.log(childrens(cat));
-//            })
-
-//         }
-//     })
-// }
-
 master(url);
 
 // const port = 3000;
