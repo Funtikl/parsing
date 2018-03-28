@@ -2,6 +2,10 @@
 const request = require("request");
 const cheerio = require("cheerio");
 const async = require("async");
+const load = require('image-downloader');
+const fs = require('fs');
+const jimp = require('jimp');
+const latinize = require('latinize');
 // const app = express();
 
 //database
@@ -67,46 +71,61 @@ let childrens = function() {
              price = price.filter(reg);
             //  console.log(price);
             
-            if (title !== undefined && price.length===2) {
-                let sql = "INSERT INTO products (name, url, nagd, nisye, catID) VALUES(?, ?, ?, ?, ?)";
-                connection.query(sql, [title, url, price[1],price[0], row[i].id], function(err, result) {
-                    if (err) throw err;
-                // console.log(result);
-                // console.log("Records inserted");
-                connection.query(
-                  "DELETE n1 FROM products n1, products n2 WHERE n1.id > n2.id AND n1.name = n2.name"
-                );
-              });
-            }
-            else if(title!== undefined && price.length===1){
-              let sql = "INSERT INTO products (name, url, nagd, catID) VALUES(?,?,?,?)";
-                connection.query(sql, [title, url,price[0],row[i].id], function(err, result) {
-                    if (err) throw err;
-                connection.query(
-                  "DELETE n1 FROM products n1, products n2 WHERE n1.id > n2.id AND n1.name = n2.name"
-                );
-              });
-            }
+            // if (title !== undefined && price.length===2) {
+            //     let sql = "INSERT INTO products (name, url, nagd, nisye, catID) VALUES(?, ?, ?, ?, ?)";
+            //     connection.query(sql, [title, url, price[1],price[0], row[i].id], function(err, result) {
+            //         if (err) throw err;
+            //     // console.log(result);
+            //     // console.log("Records inserted");
+            //     connection.query(
+            //       "DELETE n1 FROM products n1, products n2 WHERE n1.id > n2.id AND n1.name = n2.name"
+            //     );
+            //   });
+            // }
+            // else if(title!== undefined && price.length===1){
+            //   let sql = "INSERT INTO products (name, url, nagd, catID) VALUES(?,?,?,?)";
+            //     connection.query(sql, [title, url,price[0],row[i].id], function(err, result) {
+            //         if (err) throw err;
+            //     connection.query(
+            //       "DELETE n1 FROM products n1, products n2 WHERE n1.id > n2.id AND n1.name = n2.name"
+            //     );
+            //   });
+            // }
              
 
             
-            else if(url!=="www.w-t.azundefined"){
+            if(url!=="www.w-t.azundefined"){
               // console.log(url);
               request('https://'+url, function(err, res, body){
+                var dir = '/Users/fuad/Code/WorkFunc/img/';
+                if (!fs.existsSync(dir)){
+                 fs.mkdirSync(dir);
+                }
                 if (!err && res.statusCode === 200) {
                   let $ = cheerio.load(body);
-
+                   title = latinize(title);
                     let image =  $('meta[property="og:image"]').attr('content');
-                    console.log(image);
-                    let sql = "INSERT INTO products (img) VALUES(?)";
-                    connection.query(sql, image, function(err, result) {
-                      if (err) throw err;
-                  // console.log(result);
-                  // console.log("Records inserted");
-                  connection.query(
-                    "DELETE n1 FROM products n1, products n2 WHERE n1.id > n2.id AND n1.name = n2.name"
-                  );
-                });
+                    // console.log(image);
+                    let options = {
+                      url: image,
+                      dest:`/Users/fuad/Code/WorkFunc/img/${title.replace(/\s/g,'')}.jpeg`
+                    } 
+                  load.image(options)
+                  .then(({ filename, img }) => {
+                    console.log('File saved to', filename)
+                  }).catch((err) => {
+                    throw err
+                  })
+                  
+                //     let sql = "INSERT INTO products (img) VALUES(?)";
+                //     connection.query(sql, image, function(err, result) {
+                //       if (err) throw err;
+                //   // console.log(result);
+                //   // console.log("Records inserted");
+                //   connection.query(
+                //     "DELETE n1 FROM products n1, products n2 WHERE n1.id > n2.id AND n1.name = n2.name"
+                //   );
+                // });
                     
                   }
                     })
