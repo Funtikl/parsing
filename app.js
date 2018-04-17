@@ -7,8 +7,7 @@ const jimp = require('jimp');
 const latinize = require('latinize');
 const cheerio = require('cheerio');
 const fse = require('fs-extra');
-const load = require("image-downloader");
-
+const load = require('download');
 nightmare = nightmare();
 
 
@@ -123,11 +122,10 @@ let master = nightmare.goto(url)
 								let $ = cheerio.load(body);
 								title = latinize(title);
 								let image = $('meta[property="og:image"]').attr("content");
-								// console.log(image);
+							
 								try {
 									cn.query('SELECT id FROM products', function (err, result, fields) {
 										if (err) throw err;
-										let path = `/Users/fuad/Code/WorkFunc/${element.id}/${title}.jpeg`
 
 										for (let i = 0; i < result.length; i++) {
 											// console.log(result[i].id);
@@ -136,25 +134,19 @@ let master = nightmare.goto(url)
 											let onluq = parseInt(((result[i].id / 10) + 1)) * 10;
 											// console.log(yuzluk);
 											let dir = `/home/fuad/Desktop/muqaise/${minlik}/${yuzluk}/${onluq}/${result[i].id}`
-											fse.ensureDir(dir)
-												.then(() => {
-													console.log('success!')
-												})
-												.catch(err => {
-													console.error(err)
-												})
-												let options = {
-													url: image,
-													dest: `/home/fuad/Desktop/muqaise/${minlik}/${yuzluk}/${onluq}/${result[i].id}/${title}.jpeg`
-												  };
-												  load
-													.image(options)
-													.then(({ filename, img }) => {
-													  console.log("File saved to", filename);
-													})
-													.catch(err => {
-													  throw err;
-													});
+											// fse.ensureDir(dir)
+											// 	.then(() => {
+											// 		// console.log('success!')
+											// 	})
+											// 	.catch(err => {
+											// 		console.error(err)
+											// 	})
+										let dist = `/home/fuad/Desktop/muqaise/${minlik}/${yuzluk}/${onluq}/${result[i].id}/${title}.jpeg`
+											load(image,dist).then(() => {
+												console.log('done!');
+											});
+
+											// console.log(result[i].id);
 												  /*  let sql = "INSERT INTO products (img) VALUES(?)";
 												  connection.query(sql, image, function(err, result) {
 													  if (err) throw err;
@@ -166,7 +158,9 @@ let master = nightmare.goto(url)
 											  });*/
 
 										}
-
+								
+									// console.log(result[0].id);
+									
 
 									})
 								} catch (err) {
