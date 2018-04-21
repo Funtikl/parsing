@@ -9,7 +9,9 @@ const cheerio = require("cheerio");
 const fse = require("fs-extra");
 const load = require("download");
 nightmare = nightmare();
+// Bu i ashagida olan for loop uchundur. yerini deyishecem.
 let i = 0;
+// mysql-e qoshulma. Demo2 database yaratmaq lazimdi. Password da bu olmalidir ki, ishlesin. Sende bashqa cur olsa, gerek bunlari da deyishesen
 const mysql = require("mysql");
 const cn = mysql.createConnection({
   host: "localhost",
@@ -18,14 +20,17 @@ const cn = mysql.createConnection({
   database: "demo2"
 });
 
+//butun connectler cn ile olacaq.
 cn.connect(err => {
   if (err) throw err;
   console.log("Connected");
 });
 
 const url = "https://www.w-t.az";
+// bu categorialarin adlaridir. Linklerin qarshisinda, database-e yazilir.
 let names = ["phones", "computers", "numbers", "accessories", "smartwatches"];
 
+// w-t saytinda categoryleri secib database-e yazmaq ucun olan funksiya
 let master = nightmare
   .goto(url)
   .wait(2000)
@@ -58,8 +63,10 @@ let master = nightmare
     }
   })
   .then(function(result) {
+	  //categoriyalari saytdan goturende qarshisinda http filan olmur deye, burda map edib elave edirik
     let caturl = result.map(r => url + r);
     // console.log(caturl);
+	  // her birine daxil olub cheerio ile pars edirik
     caturl.forEach(element => {
       request(element, function(err, res, body) {
         // console.log(row[i].url);
